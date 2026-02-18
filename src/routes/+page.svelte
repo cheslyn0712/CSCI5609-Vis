@@ -1,60 +1,30 @@
-<script>
-    import sunsetImage from '$lib/assets/sunset.jpg';
-    
-    let maxClick = $state(6);
-    let cnt = $state(6); // tip: https://svelte.dev/docs/svelte/$state
-    
-    // Reset counter when maxClick changes
-    $effect(() => {
-      cnt = maxClick;
-    });
-  
-    function onClick() {
-      // tip: Since DOM (i.e., the webpage content) will automatically update based on values, [<p id="info">Remaining Number of Clicks: {cnt}</p>]
-      // we only need to change the cnt number here.
-      if (cnt > 0) {
-        cnt -= 1;
-      }
-    }
-</script>
-  
-<h1>Chunlin Gong's VIS Site</h1>
-<img
-  width="200px"
-  src={sunsetImage}
-  alt="Sunset"
-/>
-<div>
-  You can click up to
-  <select 
-      bind:value={maxClick}>
-    {#each [2, 4, 6] as optionNum}
-      <option value={optionNum}>
-        {optionNum}
-      </option>
-    {/each}
-  </select>
-  times
-</div>
-<button onclick={onClick}> Click Me </button>
+<script></script>
 
-{#if cnt > 0}
-  <p id="info">Remaining Number of Clicks: {cnt}</p>
-{:else}
-  <p>No more clicks allowed</p>
-{/if}
+<h1>Chunlin Gong's VIS Site</h1>
+<nav>
+  <ul>
+    <li><a href="/A0">A0 - Click Counter</a></li>
+    <li><a href="/A1">A1 - Summer Movies</a></li>
+  </ul>
+</nav>
 
 <style>
   :global(body) {
     font-family: Arial, Helvetica, sans-serif;
   }
-  button {
-    background-color: #44aa66;
-    color: white;
-    font-size: xx-large;
-    padding: 10px 20px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
+  nav ul {
+    list-style: none;
+    padding: 0;
+  }
+  nav li {
+    margin: 0.5rem 0;
+  }
+  nav a {
+    color: #44aa66;
+    text-decoration: none;
+    font-size: 1.2rem;
+  }
+  nav a:hover {
+    text-decoration: underline;
   }
 </style>
