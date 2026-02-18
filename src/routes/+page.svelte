@@ -1,10 +1,12 @@
-<script></script>
+<script>
+  import { base } from '$app/paths';
+</script>
 
 <h1>Chunlin Gong's VIS Site</h1>
 <nav>
   <ul>
-    <li><a href="/A0">A0 - Click Counter</a></li>
-    <li><a href="/A1">A1 - Summer Movies</a></li>
+    <li><a href="{base}/A0">A0 - Click Counter</a></li>
+    <li><a href="{base}/A1">A1 - Summer Movies</a></li>
   </ul>
 </nav>
 
