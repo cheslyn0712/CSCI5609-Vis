@@ -7,6 +7,7 @@
   <ul>
     <li><a href="{base}/A0">A0 - Click Counter</a></li>
     <li><a href="{base}/A1">A1 - Summer Movies</a></li>
+    <li><a href="{base}/A2">A2 - Multi-View</a></li>
   </ul>
 </nav>
 
