@@ -1,5 +1,6 @@
 <script lang="ts">
   import * as d3 from "d3";
+
   type TProps = {
     data: Array<{ x: Date; y: number }>;
     yearRange: [Date, Date] | undefined;
@@ -13,109 +14,119 @@
     width = 600,
   }: TProps = $props();
 
-  const margin = {
-    top: 15,
-    bottom: 50,
-    left: 30,
-    right: 10,
-  };
+  const margin = { top: 15, bottom: 50, left: 30, right: 10 };
+  const innerWidth = $derived(width - margin.left - margin.right);
+  const innerHeight = $derived(height - margin.top - margin.bottom);
 
-  const usableArea = $derived({
-    top: margin.top,
-    right: width - margin.right,
-    bottom: height - margin.bottom,
-    left: margin.left,
-  });
+  const xMin = $derived(data.length ? d3.min(data, (d) => d.x) : null);
+  const xMax = $derived(data.length ? d3.max(data, (d) => d.x) : null);
+  const yMin = $derived(data.length ? d3.min(data, (d) => d.y) : null);
+  const yMax = $derived(data.length ? d3.max(data, (d) => d.y) : null);
 
-  const xExtent = $derived(d3.extent(data.map((d) => d.x)));
-  const yExtent = $derived(d3.extent(data.map((d) => d.y)));
   const xScale = $derived(
     d3
       .scaleTime()
-      .domain((xExtent[0] && xExtent[1] ? xExtent : [new Date(0), new Date()]) as [Date, Date])
-      .range([usableArea.left, usableArea.right])
+      .domain(
+        xMin && xMax ? [xMin, xMax] : [new Date(1970, 0, 1), new Date()]
+      )
+      .range([0, innerWidth])
   );
   const yScale = $derived(
     d3
       .scaleLinear()
-      .domain((yExtent[0] != null && yExtent[1] != null ? yExtent : [0, 1]) as [number, number])
-      .range([usableArea.bottom, usableArea.top])
+      .domain(yMin != null && yMax != null ? [yMin, yMax] : [0, 1])
+      .range([innerHeight, 0])
   );
 
-  const lineGenerator = $derived(
+  const line = $derived(
     d3
       .line<{ x: Date; y: number }>()
       .x((d) => xScale(d.x))
       .y((d) => yScale(d.y))
-      .curve(d3.curveBasis)
+      .curve(d3.curveBasis)(data)
   );
 
-  const path = $derived(lineGenerator(data));
+  let brushG: SVGGElement | undefined = $state();
+  let xAxisG: SVGGElement | undefined = $state();
+  let yAxisG: SVGGElement | undefined = $state();
 
-  let xAxis: SVGGElement | undefined = $state(),
-    yAxis: SVGGElement | undefined = $state(),
-    brushElement: SVGGElement | undefined = $state();
+  function applyBrush(brushNode: SVGGElement) {
+    if (data.length === 0) return;
+    const domain = xMin && xMax ? [xMin, xMax] : [new Date(1970, 0, 1), new Date()];
+    const xScaleSvg = d3
+      .scaleTime()
+      .domain(domain as [Date, Date])
+      .range([margin.left, margin.left + innerWidth]);
 
-  function updateAxis() {
-    if (!xScale || !yScale) {
-      return;
-    }
-    if (xAxis) d3.select(xAxis).call(d3.axisBottom(xScale));
-    if (yAxis) d3.select(yAxis).call(d3.axisLeft(yScale));
-  }
+    const yScaleSvg = d3
+      .scaleLinear()
+      .domain(
+        (yMin != null && yMax != null ? [yMin, yMax] : [0, 1]) as [number, number]
+      )
+      .range([margin.top + innerHeight, margin.top]);
 
-  function handleBrush(event: d3.D3BrushEvent<unknown>) {
-    const selection = event.selection;
-    if (selection) {
-      const [start, end] = selection.map((v) => xScale.invert(v));
-      yearRange = [start, end];
-    } else {
-      yearRange = undefined;
-    }
-  }
+    d3.select(xAxisG).call(d3.axisBottom(xScaleSvg));
+    d3.select(yAxisG).call(d3.axisLeft(yScaleSvg));
 
-  function setupBrush() {
-    if (!brushElement) return;
     const brush = d3
-      .brushX<{ x: Date; y: number }>()
+      .brushX()
       .extent([
-        [usableArea.left, usableArea.top],
-        [usableArea.right, usableArea.bottom],
+        [margin.left, margin.top],
+        [margin.left + innerWidth, margin.top + innerHeight],
       ])
-      .on("end", handleBrush);
+      .on("brush end", (event: d3.D3BrushEvent<unknown>) => {
+        const sel = event.selection;
+        if (!sel) {
+          yearRange = undefined;
+          return;
+        }
+        const px0 = Math.min(sel[0] as number, sel[1] as number);
+        const px1 = Math.max(sel[0] as number, sel[1] as number);
+        const d0 = xScaleSvg.invert(px0);
+        const d1 = xScaleSvg.invert(px1);
+        yearRange = [d0, d1];
+      });
 
-    d3.select(brushElement).call(brush);
+    d3.select(brushNode).call(brush);
   }
 
   $effect(() => {
-    setupBrush();
-    updateAxis();
+    if (!brushG || !xAxisG || !yAxisG || data.length === 0) return;
+    applyBrush(brushG);
+    return () => {
+      d3.select(brushG).selectAll(".overlay, .selection, .handle").remove();
+    };
   });
 </script>
 
-<svg {width} {height} class="line">
-  {#if path}
-    <path d={path} fill="none" stroke="steelblue" stroke-width="2" />
-  {/if}
-  <g class="points">
-    {#each data as point (point.x.getTime())}
-      <circle
-        cx={xScale(point.x)}
-        cy={yScale(point.y)}
-        r="4"
-        fill="steelblue"
-        opacity="0.6"
-      />
-    {/each}
+<svg {width} {height} class="line-chart">
+  <g class="chart-area" transform="translate({margin.left}, {margin.top})">
+    {#if line}
+      <path d={line} fill="none" stroke="steelblue" stroke-width="2" />
+    {/if}
+    <g class="points">
+      {#each data as point (point.x.getTime())}
+        <circle
+          cx={xScale(point.x)}
+          cy={yScale(point.y)}
+          r="4"
+          fill="steelblue"
+          opacity="0.6"
+        />
+      {/each}
+    </g>
   </g>
-  <g transform="translate(0, {usableArea.bottom})" bind:this={xAxis} />
-  <g transform="translate({usableArea.left}, 0)" bind:this={yAxis} />
-  <g class="brush" bind:this={brushElement} />
+  <g
+    transform="translate(0, {margin.top + innerHeight})"
+    bind:this={xAxisG}
+  ></g>
+  <g transform="translate({margin.left}, 0)" bind:this={yAxisG}></g>
+  <g class="brush-layer" bind:this={brushG}></g>
 
   <text x={width / 2} y={height - 5} text-anchor="middle">
     Number of Movies by Year:
   </text>
-  {#if yearRange}
+  {#if yearRange && yearRange[0] instanceof Date && yearRange[1] instanceof Date}
     <text x={width / 2} y={height - 20} text-anchor="middle">
       {yearRange[0].getFullYear()} - {yearRange[1].getFullYear()}
     </text>

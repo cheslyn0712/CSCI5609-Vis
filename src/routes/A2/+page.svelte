@@ -8,6 +8,19 @@
   let movies: TMovie[] = $state([]);
   let yearRange: [Date, Date] | undefined = $state();
 
+  const filteredMovies = $derived(
+    !yearRange ||
+    !(yearRange[0] instanceof Date) ||
+    !(yearRange[1] instanceof Date)
+      ? movies
+      : movies.filter((d) => {
+          const y = d.year.getFullYear();
+          const y0 = yearRange[0].getFullYear();
+          const y1 = yearRange[1].getFullYear();
+          return y >= y0 && y <= y1;
+        })
+  );
+
   function getYearCountArray(movies: TMovie[]) {
     let yearCount: { [year: number]: number } = {};
     const allYears = [...new Set(movies.map((d) => d.year.getFullYear()))];
@@ -18,7 +31,7 @@
     }
     const yearCountArray = Object.entries(yearCount).map(
       ([year, count]) => ({
-        x: new Date(parseInt(year)),
+        x: new Date(parseInt(year), 0, 1),
         y: count as number,
       }),
     );
@@ -57,9 +70,7 @@
         } as TMovie;
       });
       movies = rows;
-    } catch (error) {
-      console.error("Error loading CSV:", error);
-    }
+    } catch (_) {}
   }
   onMount(loadCsv);
 
@@ -102,11 +113,7 @@
     </div>
 
     <Scatter
-      movies={yearRange
-        ? movies.filter(
-              (d) => d.year <= yearRange![1] && d.year >= yearRange![0],
-            )
-        : movies}
+      movies={filteredMovies}
       x={axisSelection.x}
       y={axisSelection.y}
       size={axisSelection.size}
