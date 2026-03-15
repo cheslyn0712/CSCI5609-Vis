@@ -1,3 +1,13 @@
+export type T3DModel = {
+    path: string;
+    speed: number;
+    duration: number;
+    x: number;
+    y: number;
+    z: number;
+    scale: number;
+};
+
 export type TMovie = {
     num_votes: number;
     runtime_minutes:  number;
