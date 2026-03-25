@@ -3,24 +3,26 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { T3DModel } from "../types";
 
 function addGround(scene: THREE.Scene, FLOOR: number, imgPath: string) {
-    const gt = new THREE.TextureLoader().load(imgPath);
     const gg = new THREE.PlaneGeometry(20, 20);
-    const gm = new THREE.MeshPhongMaterial({
-        color: 0xffffff,
-        map: gt,
-    });
-
+    const gm = new THREE.MeshPhongMaterial({ color: 0x4f8f3a });
     const ground = new THREE.Mesh(gg, gm);
     ground.rotation.x = -Math.PI / 2;
-    ground.material.map.repeat.set(2, 2);
-    ground.material.map.wrapS = ground.material.map.wrapT =
-        THREE.RepeatWrapping;
-    ground.material.map.colorSpace = THREE.SRGBColorSpace;
     ground.receiveShadow = true;
     ground.position.set(0, FLOOR, 0);
-    ground.rotation.x = -Math.PI / 2;
     ground.scale.set(100, 100, 100);
-    ground.receiveShadow = true;
+
+    new THREE.TextureLoader().load(
+        imgPath,
+        (tex) => {
+            tex.repeat.set(2, 2);
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            gm.map = tex;
+            gm.needsUpdate = true;
+        },
+        undefined,
+        () => {},
+    );
 
     scene.add(ground);
 }
@@ -68,9 +70,12 @@ function loadModels(models: T3DModel[], scene: THREE.Scene, mixer: THREE.Animati
 
     mixer = new THREE.AnimationMixer(scene);
     models.forEach((model) => {
-        gltfLoader.load(model.path, (gltf) => {
-            const mesh = gltf.scene.children[0] as THREE.Mesh;
+        gltfLoader.load(
+            model.path,
+            (gltf) => {
+            const mesh = gltf.scene.children[0] as THREE.Mesh | undefined;
             const clip = gltf.animations[0];
+            if (!mesh || !clip) return;
             addMorph(
                 scene,
                 mixer,
@@ -84,7 +89,10 @@ function loadModels(models: T3DModel[], scene: THREE.Scene, mixer: THREE.Animati
                 model.z,
                 model.scale,
             );
-        });
+        },
+            undefined,
+            () => {},
+        );
     });
     return mixer;
 }

@@ -15,7 +15,7 @@ const config = {
 			fallback: '404.html'
 		}),
 		paths: {
-			base: process.argv.includes('dev') ? '' : '/CSCI5609-Vis'
+			base: process.env.NODE_ENV === 'production' ? '/CSCI5609-Vis' : ''
 		}
 	}
 };
