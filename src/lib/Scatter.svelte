@@ -93,16 +93,40 @@
     yAxis: SVGGElement | undefined = $state();
 
   function updateAxis() {
-    if (!xScale || !yScale) {
+    if (!xScale || !yScale || !xAxis || !yAxis) {
       return;
     }
     d3.select(xAxis)
-      .call(d3.axisBottom(xScale))
+      .call(d3.axisBottom(xScale as any) as any)
       .selectAll("text")
       .attr("transform", "rotate(45)")
       .style("text-anchor", "start");
 
-    d3.select(yAxis).call(d3.axisLeft(yScale));
+    d3.select(yAxis).call(d3.axisLeft(yScale as any) as any);
+  }
+
+  function getX(v: unknown): number {
+    if (!xScale) return usableArea.left;
+    const out = (xScale as any)(v);
+    if (typeof out === "number") return out;
+    if (typeof out === "string") return Number(out) || usableArea.left;
+    return usableArea.left;
+  }
+
+  function getY(v: unknown): number {
+    if (!yScale) return usableArea.bottom;
+    const out = (yScale as any)(v);
+    if (typeof out === "number") return out;
+    if (typeof out === "string") return Number(out) || usableArea.bottom;
+    return usableArea.bottom;
+  }
+
+  function getR(movie: TMovie): number {
+    if (!sizeScale || !size) return sizeRange[0];
+    const out = (sizeScale as any)(movie[size]);
+    if (typeof out === "number") return out;
+    if (typeof out === "string") return Number(out) || sizeRange[0];
+    return sizeRange[0];
   }
 
   function handleMovieClick(movie: TMovie) {
@@ -126,9 +150,9 @@
           <!-- svelte-ignore a11y_click_events_have_key_events -->
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <circle
-            cx={xScale ? xScale(genre) : usableArea.left}
-            cy={yScale ? yScale(movie[y]) : usableArea.bottom}
-            r={sizeScale ? sizeScale(movie[size]) : sizeRange[0]}
+            cx={getX(genre)}
+            cy={getY(movie[y])}
+            r={getR(movie)}
             fill={movie == selectedMovie
               ? "steelblue"
               : "transparent"}
@@ -142,9 +166,9 @@
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <circle
-          cx={xScale ? xScale(movie[x]) : usableArea.left}
-          cy={yScale ? yScale(movie[y]) : usableArea.bottom}
-          r={sizeScale ? sizeScale(movie[size]) : sizeRange[0]}
+          cx={getX(movie[x])}
+          cy={getY(movie[y])}
+          r={getR(movie)}
           fill={movie == selectedMovie ? "steelblue" : "transparent"}
           stroke="steelblue"
           stroke-width="2"

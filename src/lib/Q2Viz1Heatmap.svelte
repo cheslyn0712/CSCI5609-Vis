@@ -46,6 +46,8 @@
             {#each genres as g2, j}
               {@const val = matrix[i]?.[j] ?? 0}
               <rect
+                role="img"
+                aria-label="{g1} and {g2}: {val}"
                 x={j * cellSize}
                 y={i * cellSize}
                 width={cellSize - 1}
@@ -54,8 +56,8 @@
                 stroke={hovered?.i === i && hovered?.j === j ? "#000" : "none"}
                 stroke-width={2}
                 style="cursor:pointer"
-                onmouseover={() => hovered = { i, j }}
-                onmouseout={() => hovered = null}
+                onpointerenter={() => hovered = { i, j }}
+                onpointerleave={() => hovered = null}
               >
                 <title>{g1} &amp; {g2}: {val}</title>
               </rect>

@@ -65,8 +65,8 @@
       )
       .range([margin.top + innerHeight, margin.top]);
 
-    d3.select(xAxisG).call(d3.axisBottom(xScaleSvg));
-    d3.select(yAxisG).call(d3.axisLeft(yScaleSvg));
+    d3.select(xAxisG!).call(d3.axisBottom(xScaleSvg) as any);
+    d3.select(yAxisG!).call(d3.axisLeft(yScaleSvg) as any);
 
     const brush = d3
       .brushX()
@@ -87,14 +87,14 @@
         yearRange = [d0, d1];
       });
 
-    d3.select(brushNode).call(brush);
+    d3.select(brushNode).call(brush as any);
   }
 
   $effect(() => {
     if (!brushG || !xAxisG || !yAxisG || data.length === 0) return;
     applyBrush(brushG);
     return () => {
-      d3.select(brushG).selectAll(".overlay, .selection, .handle").remove();
+      d3.select(brushG!).selectAll(".overlay, .selection, .handle").remove();
     };
   });
 </script>

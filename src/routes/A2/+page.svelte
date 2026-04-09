@@ -13,12 +13,16 @@
     !(yearRange[0] instanceof Date) ||
     !(yearRange[1] instanceof Date)
       ? movies
-      : movies.filter((d) => {
+      : (() => {
+          const range = yearRange;
+          if (!range) return movies;
+          return movies.filter((d) => {
           const y = d.year.getFullYear();
-          const y0 = yearRange[0].getFullYear();
-          const y1 = yearRange[1].getFullYear();
+          const y0 = range[0].getFullYear();
+          const y1 = range[1].getFullYear();
           return y >= y0 && y <= y1;
-        })
+        });
+      })()
   );
 
   function getYearCountArray(movies: TMovie[]) {

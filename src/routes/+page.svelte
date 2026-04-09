@@ -9,6 +9,7 @@
     <li><a href="{base}/A1">A1 - Summer Movies</a></li>
     <li><a href="{base}/A2">A2 - Multi-View</a></li>
     <li><a href="{base}/A3">A3 - 3D Visualization</a></li>
+    <li><a href="{base}/A4">A4 - Scrollytelling</a></li>
   </ul>
 </nav>
 

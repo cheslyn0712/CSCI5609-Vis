@@ -48,7 +48,11 @@ function addMorph(
     scale: number,
 ) {
     mesh = mesh.clone();
-    mesh.material = mesh.material.clone();
+    if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map((m) => m.clone());
+    } else {
+        mesh.material = mesh.material.clone();
+    }
 
     (mesh as THREE.Mesh & { speed: number }).speed = speed;
     mesh.scale.set(scale, scale, scale);

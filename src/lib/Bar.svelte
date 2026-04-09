@@ -104,7 +104,6 @@
         <g class={genre}>
           <rect
             role="img"
-            tabindex="0"
             aria-label="Genre {genre}: {cnt} movies"
             width={xBarwidth}
             height={yScale(0) - yScale(cnt)}
@@ -113,16 +112,10 @@
             fill="#449900"
             class="bar"
             opacity={selectedGenre === "" || selectedGenre === genre ? 1 : 0.3}
-            onmouseover={() => {
+            onpointerenter={() => {
               selectedGenre = genre;
             }}
-            onmouseout={() => {
-              selectedGenre = "";
-            }}
-            onfocus={() => {
-              selectedGenre = genre;
-            }}
-            onblur={() => {
+            onpointerleave={() => {
               selectedGenre = "";
             }}
           />
